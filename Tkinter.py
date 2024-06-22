@@ -1,101 +1,114 @@
-from tkinter import messagebox
-
-#import mysql.connector
 import tkinter as tk
-from tkinter import *
-import tkinter.messagebox
-root = tk.Tk()
-root.title("Registration Form")
-root.geometry("350x400")
-root.resizable(width=False, height=False)
-root.config(bg="LightSteelBlue")
+from tkinter import messagebox
+import mysql.connector
+
+
 def create_conn():
     return mysql.connector.connect(
             host="localhost",
             user="root",
             password="",
-            database="sgvp temple" )
-def submit():
-    address = add_txt.get("1.0", tk.END)
-    if fn_entry.get() =="" or ln_entry.get() =="" or mob_entry.get() =="" or address.strip()=="":
-       messagebox.showinfo("Warning", "All fields are required.")
+            database="Registration Form" )
+
+def submit_form():
+    name = entry_name.get()
+    contact = entry_contact.get()
+    email = entry_email.get()
+    gender = gender_var.get()
+    city = city_var.get()
+
+    # Basic validation
+    if name == "" or contact == "" or email == "":
+        messagebox.showerror("Error", "Please fill in all required fields")
     else:
         conn = create_conn()
         cursor = conn.cursor()
-        query = "insert into members(Fname,Lname,Mobile,Addressh) values(%s,%s,%s,%s)"
-        args = (fn_entry.get(),ln_entry.get(),mob_entry.get(),address.strip())
-        cursor.execute(query,args)
+        query = "insert into form(Name,Contact,Email,Gender,City) values(%s,%s,%s,%s,%s)"
+        args = (entry_name.get(), entry_contact.get(), entry_email.get(), gender_var.get(),city_var.get(),)
+        cursor.execute(query, args)
         conn.commit()
-        id_entry.delete(0,END)
-        fn_entry.delete(0,END)
-        ln_entry.delete(0,END)
-        mob_entry.delete(0,END)
-        add_txt.delete("1.0", tk.END)
-        messagebox.showinfo("Information", "Your Data Has Been Submitted.")
-def search():
-    fn_entry.delete(0, END)
-    ln_entry.delete(0, END)
-    mob_entry.delete(0, END)
-    add_txt.delete("1.0", tk.END)
-    if id_entry.get() =="":
-        messagebox.showinfo("Warning", "Please Enter Id ")
+        conn.close()
+        entry_name.delete(0, tk.END)
+        entry_contact.delete(0, tk.END)
+        entry_email.delete(0, tk.END)
+
+
+        # Optional: You can process or save the data here
+        message = f"Registration Successful!\n\nName: {name}\nEmail: {email}\nGender: {gender}\nCity: {city}"
+        messagebox.showinfo("Success", message)
+
+def search_form():
+    entry_contact.delete(0, tk.END)
+    entry_email.delete(0, tk.END)
+    if entry_name.get()=="":
+        messagebox.showerror("Error", "Please fill required fields")
     else:
         conn = create_conn()
         cursor = conn.cursor()
-        query = "select * from members where Mem_Id=%s"
-        args = (id_entry.get(),)
-        cursor.execute(query,args)
-        rows = cursor.fetchall()
-        conn.close()
-        if rows:
-            fn_entry.insert([0],rows[0][1])
-            ln_entry.insert([0],rows[0][2])
-            mob_entry.insert([0],rows[0][3])
-            add_txt.insert([0],rows[0][4])
+        query = "select * from form where Name=%s"
+        args = (entry_name.get(),)
+        cursor.execute(query, args)
+        data = cursor.fetchall()
+        if data:
+            for i in data:
+                entry_contact.insert(0,i[2])
+                entry_email.insert(0,i[3])
+                gender_var.set(i[4])
+                city_var.set(i[5])
+                conn.close()
         else:
-            messagebox.showinfo("Information", "Enter Id Not Found")
+            messagebox.showinfo("info", "Data Not Found Please Enter Correct Name")
 
-#[(1, 'Jalak',
-# 'Modi',
-#  9327016414,
-# 'I- 403 Anand Vihar Flat Tragad Road ,Tragad Chandkheda')]
+# Create the main window
+root = tk.Tk()
+root.title("Registration Form")
+root.geometry("400x400")
+
+# Define variables for dropdowns
+gender_options = ["Male", "Female", "Other"]
+city_options = ["Ahmedabad", "Baroda", "Rajkot", "Gandhinagar", "Surat"]
+
+# Create and place labels and entry fields
+label_name = tk.Label(root, text="Please Fill in All Required Fields",bg="light blue", fg="black" , font=("Helvetica", 10))
+label_name.grid(row=0, column=0, padx=10, pady=5)
 
 
+label_name = tk.Label(root, text="Name:")
+label_name.grid(row=2, column=0, padx=10, pady=5)
+entry_name = tk.Entry(root)
+entry_name.grid(row=2, column=1, padx=10, pady=5)
 
-lb1 =Label(root, text="Member Registration Form", font=("Helvetica",16,"bold"),bg="Black", fg="Yellow")
-lb1.pack()
+label_contact = tk.Label(root, text="Contact:")
+label_contact.grid(row=3, column=0, padx=10, pady=5)
+entry_contact = tk.Entry(root,)
+entry_contact.grid(row=3, column=1, padx=10, pady=5)
 
-id_lbl =Label(root, text="Member Id : ",font=("Helvetica"),bg="LightSteelBlue", fg="Black")
-id_lbl.place(x=10,y=50)
-id_entry = Entry(root, font=("Helvetica",15,"bold"),width=19)
-id_entry.place(x=125,y=50)
+label_email = tk.Label(root, text="Email:")
+label_email.grid(row=4, column=0, padx=10, pady=5)
+entry_email = tk.Entry(root)
+entry_email.grid(row=4, column=1, padx=10, pady=5)
 
-fn_lbl =Label(root, text="First Name : ",font=("Helvetica"),bg="LightSteelBlue", fg="Black")
-fn_lbl.place(x=10,y=100)
-fn_entry = Entry(root, font=("Helvetica",15,"bold"),width=19)
-fn_entry.place(x=125,y=100)
-ln_lbl =Label(root, text="Last Name : ",font=("Helvetica"),bg="LightSteelBlue", fg="Black")
-ln_lbl.place(x=10,y=150)
-ln_entry = Entry(root, font=("Helvetica",15,"bold"),width=19)
-ln_entry.place(x=125,y=150)
+label_gender = tk.Label(root, text="Gender:")
+label_gender.grid(row=5, column=0, padx=10, pady=5)
+gender_var = tk.StringVar(root)
+gender_var.set(gender_options[0])  # Default value
+gender_dropdown = tk.OptionMenu(root, gender_var, *gender_options)
+gender_dropdown.grid(row=5, column=1, padx=10, pady=5)
 
-mod_lbl=Label(root, text="Mobile       : ",font=("Helvetica"),bg="LightSteelBlue", fg="Black")
-mod_lbl.place(x=10,y=200)
-mob_entry = Entry(root, font=("Helvetica",15,"bold"),width=19)
-mob_entry.place(x=125,y=200)
+label_city = tk.Label(root, text="City:")
+label_city.grid(row=6, column=0, padx=10, pady=5)
+city_var = tk.StringVar(root)
+city_var.set(city_options[0])  # Default value
+city_dropdown = tk.OptionMenu(root, city_var, *city_options)
+city_dropdown.grid(row=6, column=1, padx=10, pady=5)
 
-add_lbl =Label(root, text="Addressh   : ",font=("Helvetica"),bg="LightSteelBlue", fg="Black")
-add_lbl.place(x=10,y=250)
-add_txt = Text(root, font=("Helvetica",15,"bold"),width=19,height=3)
-add_txt.place(x=125,y=250)
 
-sub_btn = Button(root, text="Submit",font=("Helvetica",15,"bold"),command=submit)
-sub_btn.place(x=15, y=340)
-sub_btn = Button(root, text="Serch",font=("Helvetica",15,"bold"),command=search)
-sub_btn.place(x=100, y=340)
-sub_btn = Button(root, text="Update",font=("Helvetica",15,"bold"))
-sub_btn.place(x=175, y=340)
-sub_btn = Button(root, text="Delete",font=("Helvetica",15,"bold"))
-sub_btn.place(x=262, y=340)
+# Submit button
+submit_button = tk.Button(root, text="Submit", command=submit_form)
+submit_button.grid(row=9, columnspan=2, pady=10)
 
+submit_button = tk.Button(root, text="Search", command=search_form)
+submit_button.grid(row=11, columnspan=2, pady=10)
+
+# Start the main tkinter loop
 root.mainloop()
